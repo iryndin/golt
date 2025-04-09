@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Load test results</title>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="css/styles.css" rel="stylesheet" />
+    <script src="js/data.js"></script>
+
+    <style>
+        .bar {
+            fill: steelblue;
+        }
+        .bar:hover {
+            fill: orange;
+        }
+        .axis-label {
+            font: 12px sans-serif;
+        }
+        .tooltip {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            border-radius: 4px;
+            pointer-events: none;
+            font: 12px sans-serif;
+            box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+<!-- Responsive navbar-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">Load Test Results</a>
+    </div>
+</nav>
+<!-- Page content-->
+<div class="container">
+    <div class="text-center mt-5">
+        <h1>Load test results</h1>
+    </div>
+    <div class="text-center mt-5">
+        <h3>Simulation stats</h3>
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th scope="row">Total requests</th>
+                <td id="asTotal">100</td>
+            </tr>
+            <tr>
+                <th scope="row">Start time</th>
+                <td id="startTimestamp">345</td>
+            </tr>
+            <tr>
+                <th scope="row">End time</th>
+                <td id="endTimestamp">345</td>
+            </tr>
+            <tr>
+                <th scope="row">Duration, seconds</th>
+                <td id="durationSeconds">3450</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="text-center mt-5">
+        <h3>Response time stats</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">Min time, ms</th>
+                    <td id="asMin">345</td>
+                </tr>
+                <tr>
+                    <th scope="row">Max time, ms</th>
+                    <td id="asMax">3450</td>
+                </tr>
+                <tr>
+                    <th scope="row">Mean</th>
+                    <td id="asMean">323</td>
+                </tr>
+                <tr>
+                    <th scope="row">Std dev</th>
+                    <td id="asStdDev">323</td>
+                </tr>
+
+                <tr>
+                    <th scope="row">50th pct</th>
+                    <td id="asP50">323</td>
+                </tr>
+                <tr>
+                    <th scope="row">75th pct</th>
+                    <td id="asP75">323</td>
+                </tr>
+                <tr>
+                    <th scope="row">90th pct</th>
+                    <td id="asP90">323</td>
+                </tr>
+                <tr>
+                    <th scope="row">95th pct</th>
+                    <td id="asP95">323</td>
+                </tr>
+                <tr>
+                    <th scope="row">99th pct</th>
+                    <td id="asP99">323</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="text-center mt-5">
+        <h3>Response time distribution</h3>
+        <svg width="800" height="500"></svg>
+        <div class="tooltip" id="tooltip"></div>
+    </div>
+</div>
+<!-- Bootstrap core JS-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v7.js"></script>
+
+<script>
+    document.getElementById("asTotal").textContent = AggregateStats.total;
+    document.getElementById("startTimestamp").textContent = AggregateStats.startTimestamp;
+    document.getElementById("endTimestamp").textContent = AggregateStats.endTimestamp;
+    document.getElementById("durationSeconds").textContent = AggregateStats.durationSeconds;
+
+    document.getElementById("asMin").textContent = AggregateStats.min;
+    document.getElementById("asMax").textContent = AggregateStats.max;
+    document.getElementById("asMean").textContent = AggregateStats.mean;
+    document.getElementById("asStdDev").textContent = AggregateStats.stddev;
+
+    document.getElementById("asP50").textContent = AggregateStats.p50;
+    document.getElementById("asP75").textContent = AggregateStats.p75;
+    document.getElementById("asP90").textContent = AggregateStats.p90;
+    document.getElementById("asP95").textContent = AggregateStats.p95;
+    document.getElementById("asP99").textContent = AggregateStats.p99;
+</script>
+
+<script src="js/response_time_distribution.js"></script>
+
+<script>
+    let barChartData = createBarCharData(LoadTestData);
+    console.log(barChartData);
+
+    const svg = d3.select("svg");
+    const tooltip = d3.select("#tooltip");
+    const width = +svg.attr("width");
+    const height = +svg.attr("height");
+    const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+
+    const x = d3.scaleBand()
+        .domain(barChartData.map(d => d.ts))
+        .range([margin.left, width - margin.right])
+        .padding(0.25);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(barChartData, d => d.n)]).nice()
+        .range([height - margin.bottom, margin.top]);
+
+    svg.append("g")
+        .selectAll("rect")
+        .data(barChartData)
+        .join("rect")
+        .attr("class", "bar")
+        .attr("x", d => x(d.ts))
+        .attr("y", d => y(d.n))
+        .attr("height", d => y(0) - y(d.n))
+        .attr("width", x.bandwidth())
+        .on("mouseover", (event, d) => {
+            tooltip
+                .style("opacity", 1)
+                .html(`Response time, ms: ${d.ts}<br>Occurences: ${d.n}`);
+        })
+        .on("mousemove", (event) => {
+            tooltip
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", () => {
+            tooltip.style("opacity", 0);
+        });
+
+    svg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).tickFormat(d => d))
+        .selectAll("text")
+        .attr("transform", "rotate(-65)")
+        .attr("x", -5)
+        .attr("y", x.bandwidth() / 2)
+        .attr("dy", "-0.3em")
+        .style("text-anchor", "end");
+
+    svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y))
+        .attr("class", "axis-label");
+
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height - 5)
+        .attr("text-anchor", "middle")
+        .text("Response time (ms)");
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", 15)
+        .attr("text-anchor", "middle")
+        .text("Occurrences (n)");
+</script>
+
+</body>
+</html>
