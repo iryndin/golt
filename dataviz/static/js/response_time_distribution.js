@@ -1,6 +1,18 @@
-const barChartStepMs = 100;
+const PossibleStepMillis = [100, 200, 500, 1000, 2000, 5000 ];
 
 function createBarCharData(data) {
+  let res;
+  for (let i=0; i<PossibleStepMillis.length; i++) {
+    const stepMs = PossibleStepMillis[i];
+    res = createBarCharDataWithStep(data, stepMs);
+    if (res.length < 50) {
+      break;
+    }
+  }
+  return res;
+}
+
+function createBarCharDataWithStep(data, barChartStepMs) {
   let startMs = 0;
   let result = [];
 
