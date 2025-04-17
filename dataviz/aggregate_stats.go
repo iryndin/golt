@@ -11,6 +11,8 @@ type AggregateStats struct {
 	simulationEndTime         string
 	simulationDurationSeconds int64
 	total                     int
+	totalSuccess              int
+	totalError                int
 	min                       int
 	max                       int
 	mean                      int

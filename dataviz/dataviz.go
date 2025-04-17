@@ -14,7 +14,7 @@ import (
 )
 
 const Line1 = "const LoadTestData = ["
-const FormatRecordLine = "  { startMs: %d, endMs: %d, elapsedMs: %d, size: %d },\n"
+const FormatRecordLine = "  { startMs: %d, endMs: %d, elapsedMs: %d, size: %d, statusCode: %d },\n"
 const LineEnd = "];"
 
 //go:embed static/js/response_time_distribution.js
@@ -87,6 +87,19 @@ func WriteDataJs(filepath string, data []scenario.ResponseData) {
 	astats.simulationEndTime = time.UnixMilli(simulationEndTimeUnixMs).Format("2006-01-02 15:04:05")
 	astats.simulationDurationSeconds = (simulationEndTimeUnixMs - simulationStartTimeUnixMs) / 1000
 
+	totalOk := 0
+	totalError := 0
+	for _, rd := range data {
+		if rd.StatusCode >= 200 && rd.StatusCode <= 299 {
+			totalOk++
+		} else if rd.StatusCode >= 400 && rd.StatusCode <= 599 {
+			totalError++
+		}
+	}
+
+	astats.totalSuccess = totalOk
+	astats.totalError = totalError
+
 	writeData(writer, data)
 	writer.WriteString("\n\n")
 	writeStats(writer, astats)
@@ -105,7 +118,7 @@ func writeData(writer *bufio.Writer, data []scenario.ResponseData) {
 
 	for _, d := range data {
 		line := fmt.Sprintf(FormatRecordLine, d.StartTimeUnixMs, d.EndTimeUnixMs,
-			d.EndTimeUnixMs-d.StartTimeUnixMs, d.ResponseSize)
+			d.EndTimeUnixMs-d.StartTimeUnixMs, d.ResponseSize, d.StatusCode)
 		writer.WriteString(line)
 	}
 	writer.WriteString(LineEnd)
@@ -118,6 +131,8 @@ func writeStats(writer *bufio.Writer, astats AggregateStats) {
 	writer.WriteString("  endTimestamp: \"" + astats.simulationEndTime + "\",\n")
 	writer.WriteString("  durationSeconds: " + strconv.FormatInt(astats.simulationDurationSeconds, 10) + ",\n")
 	writer.WriteString("  total: " + strconv.Itoa(astats.total) + ",\n")
+	writer.WriteString("  totalSuccess: " + strconv.Itoa(astats.totalSuccess) + ",\n")
+	writer.WriteString("  totalError: " + strconv.Itoa(astats.totalError) + ",\n")
 	writer.WriteString("  min: " + strconv.Itoa(astats.min) + ",\n")
 	writer.WriteString("  max: " + strconv.Itoa(astats.max) + ",\n")
 	writer.WriteString("  mean: " + strconv.Itoa(astats.mean) + ",\n")

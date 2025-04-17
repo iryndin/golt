@@ -61,6 +61,14 @@
                 <td id="asTotal">100</td>
             </tr>
             <tr>
+                <th scope="row">Total success requests</th>
+                <td id="asTotalSuccess">100</td>
+            </tr>
+            <tr>
+                <th scope="row">Total error requests</th>
+                <td id="asTotalError">100</td>
+            </tr>
+            <tr>
                 <th scope="row">Start time</th>
                 <td id="startTimestamp">345</td>
             </tr>
@@ -138,6 +146,8 @@
 
 <script>
     document.getElementById("asTotal").textContent = AggregateStats.total;
+    document.getElementById("asTotalSuccess").textContent = AggregateStats.totalSuccess;
+    document.getElementById("asTotalError").textContent = AggregateStats.totalError;
     document.getElementById("startTimestamp").textContent = AggregateStats.startTimestamp;
     document.getElementById("endTimestamp").textContent = AggregateStats.endTimestamp;
     document.getElementById("durationSeconds").textContent = AggregateStats.durationSeconds;
