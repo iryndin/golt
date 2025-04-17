@@ -80,6 +80,8 @@ const AggregateStats = {
   endTimestamp: "2025-04-09 09:59:51",
   durationSeconds: 42,
   total: 175,
+  totalSuccess: 170,
+  totalError: 5,
   min: 572,
   max: 8131,
   mean: 2636,
